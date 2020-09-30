@@ -80,7 +80,7 @@ public class startController {
         return "error";
     }
 
-    @PostMapping("/save")
+    @PostMapping("/save")//aes crypt
     public String saveText(@RequestBody String data){
         String tmp[] = data.split("\n", 2);
         String filename = tmp[0];

@@ -68,7 +68,7 @@ class Editor extends JFrame implements ActionListener {
                 String filename = JOptionPane.showInputDialog(frame, "Server storage", "Open", JOptionPane.PLAIN_MESSAGE, null, filenames, filenames[0]).toString();
 
                 currentFilename = filename;
-                String text = httpClient.loadText(filename);
+                String text = httpClient.loadText(filename);//todo get server text decrypt
                 textArea.setText(text);
                 textArea.setVisible(true);
             } catch (Exception ex) {
