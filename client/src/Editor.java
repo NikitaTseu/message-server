@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 
 class Editor extends JFrame implements ActionListener {
     private JFrame frame = new JFrame("Secured Notepad");
@@ -11,7 +12,7 @@ class Editor extends JFrame implements ActionListener {
 
     private String currentFilename = "";
 
-    Editor(){
+    Editor() throws IOException, InterruptedException {
         // 192.168.1.66:8080
         // connect to server
         while(true){
@@ -20,6 +21,7 @@ class Editor extends JFrame implements ActionListener {
                 JOptionPane.showMessageDialog(frame, "Connection failed");
             }
             else{
+                httpClient.getSessionKey();
                 JOptionPane.showMessageDialog(frame, "Connected to server");
                 break;
             }

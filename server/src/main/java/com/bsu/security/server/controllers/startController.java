@@ -1,5 +1,7 @@
 package com.bsu.security.server.controllers;
 
+import com.bsu.security.server.EncryptionService;
+import com.bsu.security.server.encryption.Pair;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
@@ -12,6 +14,8 @@ import java.nio.file.Paths;
 @RequestMapping
 public class startController {
     private static String pathBase = "C:\\Users\\Nikita\\Desktop\\server_storage\\";
+    private static Charset defaultCharset = StandardCharsets.UTF_8;
+    private static EncryptionService encryptionService = new EncryptionService();
 
     static String readFile(String path, Charset encoding) throws IOException {
         byte[] encoded = Files.readAllBytes(Paths.get(path));
@@ -21,6 +25,16 @@ public class startController {
     @GetMapping("/test")
     public String sendHello(){
         return "hello";
+    }
+
+    @PostMapping("/key")
+    public byte[] sendKey(@RequestBody byte[] rsaOpenKeyBytes){
+        String s = new String(rsaOpenKeyBytes, defaultCharset);
+        String tmp[] = s.split(",", 2);
+        Pair publicKey = new Pair(Long.valueOf(tmp[0]), Long.valueOf(tmp[1]));
+
+        return this.encryptionService.encryptRSA(publicKey, this.encryptionService.getSessionKey());
+        //return this.encryptionService.getSessionKey();
     }
 
     @GetMapping("/filenames")
@@ -40,16 +54,16 @@ public class startController {
     }
 
     @PostMapping("/load")
-    public String loadText(@RequestBody String filename){
+    public byte[] loadText(@RequestBody String filename){
         String text = "";
-
+        byte[] bytes = null;
         try {
-            text = readFile(pathBase + filename, StandardCharsets.UTF_8);
+            text = readFile(pathBase + filename, defaultCharset);
+            bytes = encryptionService.encrypt(text);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return text;
+        return bytes;
     }
 
     @PostMapping("/delete")
@@ -81,7 +95,8 @@ public class startController {
     }
 
     @PostMapping("/save")
-    public String saveText(@RequestBody String data){
+    public String saveText(@RequestBody byte[] dataBytes){
+        String data = encryptionService.decrypt(dataBytes);
         String tmp[] = data.split("\n", 2);
         String filename = tmp[0];
         String text = tmp[1];
@@ -100,7 +115,7 @@ public class startController {
         FileOutputStream outputStream = null;
         try {
             outputStream = new FileOutputStream(pathBase + filename);
-            byte[] strToBytes = text.getBytes(StandardCharsets.UTF_8);
+            byte[] strToBytes = text.getBytes(defaultCharset);
             outputStream.write(strToBytes);
             outputStream.close();
             return "saved";
